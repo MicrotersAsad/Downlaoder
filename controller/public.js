@@ -3,7 +3,7 @@ require("dotenv").config();
 const aufs = require("all-url-file-size");
 
 exports.startApi = (req, res, next) => {
-  res.status(200).json({ message: "Welcome To Vidown Api" });
+  res.status(200).json({ message: "Welcome To downloader Api" });
 };
 
 exports.postYoutube = async (req, res, next) => {
