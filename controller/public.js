@@ -58,60 +58,62 @@ exports.startApi = (req, res, next) => {
 //   }
 // };
 
-// exports.postTwitter = async (req, res, next) => {
-//   const twUrl = req.body.urls;
-//   let responseSent = false; // Flag to track if the response has been sent
 
-//   const options = {
-//     method: "POST",
-//     url: "https://twitter65.p.rapidapi.com/api/twitter/links",
-//     headers: {
-//       "content-type": "application/json",
-//       "X-RapidAPI-Key": process.env.TW_API_KEY,
-//       "X-RapidAPI-Host": "twitter65.p.rapidapi.com",
-//     },
-//     data: { url: twUrl },
-//   };
 
-//   try {
-//     const response = await axios.request(options);
-//     const data = response.data;
-//     let dataUrl = data[0].urls;
 
-//     // Handling multiple asynchronous operations with Promise.all
-//     const sizePromises = dataUrl.map(item => aufs(item.url, "MB"));
-//     const sizes = await Promise.all(sizePromises);
 
-//     const dataList = sizes.map((size, index) => ({
-//       url: dataUrl[index].url,
-//       quality: dataUrl[index].subName + "P",
-//       size: size.toFixed(1),
-//     }));
+exports.postTwitter = async (req, res, next) => {
+  const twUrl = req.body.urls;
+  console.log(twUrl);
 
-//     if (!responseSent) { // Check if the response has already been sent
-//       res.status(200).json({
-//         thumb: data[0]["pictureUrl"],
-//         urls: dataList,
-//         title: data[0]["meta"]["title"],
-//       });
-//       responseSent = true; // Mark that the response has been sent
-//     }
-//   } catch (err) {
-//     if (!responseSent) { // Ensure no response has been sent before sending error response
-//       res.status(403).json({
-//         status: "fail",
-//         error: "Sorry, we couldn't locate the video you're looking for. It's possible that the video is set to private or has been removed.",
-//         code: 403,
-//       });
-//       responseSent = true;
-//     }
-//   }
-// };
+  const options = {
+    method: "GET",
+    url: 'https://twitter-downloader-download-twitter-videos-gifs-and-images.p.rapidapi.com/status',
+    params: { url: twUrl },
+    headers: {
+      "X-RapidAPI-Key": process.env.TW_API_KEY,
+      'X-RapidAPI-Host': 'twitter-downloader-download-twitter-videos-gifs-and-images.p.rapidapi.com',
+    },
+  };
+
+  try {
+    const response = await axios.request(options);
+    const data = response.data;
+    console.log(data);
+
+    // Check if the response contains video URL
+    if (!data.media || !data.media.video || !data.media.video.videoVariants) {
+      return res.status(404).json({ error: 'Video not found in the tweet.' });
+    }
+
+    const videoVariants = data.media.video.videoVariants;
+    const videoUrls = videoVariants.map(variant => ({
+      url: variant.url,
+      quality: 'High', // You can set quality dynamically based on variant.bitrate if available
+      size: 'Unknown' // You can set size dynamically based on variant.size if available
+    }));
+
+    // Respond with the extracted data
+    res.status(200).json({
+      thumb: data.user.profile, // Assuming this is the profile image
+      urls: videoUrls,
+      title: data.description,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
 //Facebook videos Downloder
 
 exports.postFb = async (req, res, next) => {
   const fbUrl = req.body.urls;
-
+console.log(fbUrl);
 
   const options = {
     method: "GET",
