@@ -20,7 +20,7 @@ app.use((req, res, next) => {
   const useragent = req.headers["user-agent"];
   let parser = new UAParser(useragent);
   let parserResults = parser.getResult();
-  console.log(parserResults);
+
 
   // Simulate user object creation
   const user = {
